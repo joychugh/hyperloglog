@@ -18,56 +18,46 @@ public class Cardinality {
     private static final BigDecimal ONE = BigDecimal.ONE;
     private static final BigDecimal B = BigDecimal.valueOf(1.079);
 
-    public static int getCardinality(final List<byte[]> input, final int numRegistersExponent) {
+    public static long getCardinality(final List<byte[]> input, final int numRegistersExponent) {
         final int numRegisters = 1 << numRegistersExponent;
         // 0.7213/(1+1.079/2^numRegistersExponent for numRegisters > 128 ie. numRegistersExponent > 7)
         // for simplicity of implementation we will assume numRegistersExponent > 7 and bits per register = 1 byte = 8
         final BigDecimal correctionConstant = A.divide(ONE.add(B.divide(BigDecimal.valueOf(numRegisters), MathContext.DECIMAL32)), MathContext.DECIMAL32);
         byte[] registers = new byte[numRegisters];
-        int zeroRegisterCount = 0;
+        double zeroRegisterCount = 0.0;
 
         for (byte[] v: input) {
             int x = MurmurHash3.murmurhash3_x86_32(v, 0, v.length, 0);
             int shift = Integer.SIZE - numRegistersExponent;
             int j = x >>> shift;
-            int w = x << numRegistersExponent;
+            // To prevent  0 hash value giving 32 leading zeros
+            int w = (x << numRegistersExponent) | (1 << (numRegistersExponent - 1));
             registers[j] = (byte) Math.max(registers[j], Integer.numberOfLeadingZeros(w) + 1);
         }
 
-        BigDecimal sumStreams = BigDecimal.ZERO;
+        BigDecimal indicator = BigDecimal.ZERO;
         for (int i=0; i < numRegisters; ++i) {
-            sumStreams = sumStreams.add(BigDecimal.valueOf(2).pow(-registers[i], MathContext.DECIMAL32));
-            if (registers[i] == 0) zeroRegisterCount ++;
+            indicator = indicator.add(BigDecimal.valueOf(2).pow(-registers[i], MathContext.DECIMAL32));
+            if (registers[i] == 0) zeroRegisterCount++;
         }
-        sumStreams = BigDecimal.ONE.divide(sumStreams, MathContext.DECIMAL32);
-        BigDecimal E = correctionConstant.multiply(BigDecimal.valueOf(numRegisters * numRegisters)).multiply(sumStreams);
-        return E.intValue();
+        indicator = BigDecimal.ONE.divide(indicator, MathContext.DECIMAL32);
+        BigDecimal E = correctionConstant.multiply(BigDecimal.valueOf(numRegisters * numRegisters)).multiply(indicator);
+
+        return Cardinality.correct(E, numRegisters, zeroRegisterCount);
     }
 
-    public static void main(String[] args) {
-        List<byte[]> input = new LinkedList<byte[]>();
-        input.add("a".getBytes());
-        input.add("a".getBytes());
-        input.add("a".getBytes());
-        input.add("b".getBytes());
-        input.add("c".getBytes());
-        input.add("d".getBytes());
-        input.add("b".getBytes());
-        input.add("c".getBytes());
-        input.add("d".getBytes());
-        input.add("c".getBytes());
-        input.add("b".getBytes());
-        input.add("b".getBytes());
-        input.add("b".getBytes());
-        input.add("d".getBytes());
-        input.add("d".getBytes());
-        input.add("e".getBytes());
-        input.add("f".getBytes());
-        input.add("g".getBytes());
-        input.add("h".getBytes());
-        Cardinality.getCardinality(input, 12);
-
-
-
+    private static long correct(BigDecimal E, int numOfRegisters, double emptyRegisters) {
+        if (E.longValue() <= (5.0/2.0) * numOfRegisters) {
+            if (emptyRegisters != 0) {
+                return Math.round(numOfRegisters * Math.log(numOfRegisters/emptyRegisters));
+            } else {
+                return E.longValue();
+            }
+        }
+        if (E.longValue() <= (1.0/30.0) * (1l << 32)) {
+            return E.longValue();
+        } else {
+            return Math.round(-(1l << 32) * Math.log(BigDecimal.ONE.subtract(E.divide(BigDecimal.valueOf(1l << 32), MathContext.DECIMAL32)).doubleValue()));
+        }
     }
 }
