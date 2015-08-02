@@ -1,3 +1,6 @@
 language: java
 ## Run Integration tests
 script: "mvn test && mvn verify"
+
+jdk:
+  - oraclejdk8
