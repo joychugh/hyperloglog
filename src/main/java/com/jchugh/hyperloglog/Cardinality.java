@@ -1,14 +1,14 @@
 package com.jchugh.hyperloglog;
-
 import com.google.common.hash.Hashing;
-
+import net.jcip.annotations.ThreadSafe;
 import java.nio.charset.Charset;
 
 /**
  * @author jchugh
- * Based on the HyperLogLog algorithm. Computes cardinality with error less than 1.04/sqrt(pow(2, logRegisterCount)).
+ * Based on the HyperLogLog algorithm. Computes cardinality with error less than 1.04/sqrt(2 ^ logRegisterCount).
  * The register size is fixed at 8 bits for ease of implementation.
  */
+@ThreadSafe
 public class Cardinality {
     private final int SEED = 1;
     private final Object lock = new Object();
@@ -17,7 +17,6 @@ public class Cardinality {
     private final int registerCount;
     private final double correctionConstant;
     private final int shift;
-    private int zeroValueRegisters;
 
     /**
      * This class and all it's methods except {@link #getCardinalityAsync()} are {@link net.jcip.annotations.ThreadSafe}
@@ -31,9 +30,8 @@ public class Cardinality {
         this.registerCount = 1 << logRegisterCount;
         this.registers = new byte[this.registerCount];
         this.logRegisterCount = logRegisterCount;
-        this.correctionConstant = getCorrectionConstant(this.registerCount);
+        this.correctionConstant = getCorrectionConstant(this.registerCount) * registerCount * registerCount;
         this.shift = Integer.SIZE - logRegisterCount;
-        zeroValueRegisters = 0;
     }
 
     /**
@@ -92,6 +90,7 @@ public class Cardinality {
      * Get the cardinality of the inputs received so far. Async.
      * While the cardinality is calculated, you can still add data to the registers, this may result in slightly skewed
      * cardinality for the instance it was called.
+     * <B>Warning: Another thread can call {@link #reset()} while this executes.</B>
      * @return cardinality of the items seen so far
      */
     public long getCardinalityAsync() {
@@ -107,7 +106,7 @@ public class Cardinality {
             if (registers[i] == 0) zeroRegisterCount++;
         }
         indicator = 1 / indicator;
-        double E = correctionConstant * registerCount * registerCount * indicator;
+        double E = correctionConstant * indicator;
         return Cardinality.correct(E, registerCount, zeroRegisterCount);
     }
 
@@ -139,18 +138,22 @@ public class Cardinality {
         }
     }
 
+    /**
+     * As Suggested by the addThis stream library, large range correction causes more error.
+     * @param E
+     * @param numOfRegisters
+     * @param emptyRegisters
+     * @return
+     */
     private static long correct(final double E, final int numOfRegisters, final int emptyRegisters) {
         if (E <= (5.0 / 2.0) * numOfRegisters) {
             if (emptyRegisters != 0) {
                 return Math.round(numOfRegisters * Math.log(numOfRegisters / Double.valueOf(emptyRegisters)));
             } else {
-                return Double.valueOf(E).longValue();
+                return Math.round(E);
             }
-        }
-        if (E <= (1.0 / 30.0) * (1l << 32)) {
-            return Double.valueOf(E).longValue();
         } else {
-            return Math.round(-(1l << 32) * Math.log(1 - E / (1l << 32)));
+            return Math.round(E);
         }
     }
 }
