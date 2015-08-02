@@ -10,8 +10,14 @@
 
     <properties>
         <guava.version>18.0</guava.version>
+        <thread.safety.doc.version>1.0.36</thread.safety.doc.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>org.ow2.bundles</groupId>
+            <artifactId>ow2-bundles-externals-annotations</artifactId>
+            <version>${thread.safety.doc.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
