@@ -14,18 +14,16 @@ import static org.testng.Assert.*;
  * Created by jchugh on 7/28/15.
  */
 public class CardinalityTest {
-
     @Test
-    public void testGetCardinalityNumbers_() throws Exception {
+    public void testGetCardinalityBillionNumbers() throws Exception {
         Cardinality cardinality = new Cardinality(16);
-        int size = 100000;
+        int size = 1000000000;
         Random random = new Random();
         IntStream.range(0, size)
-                .forEach(value -> cardinality.offer(String.valueOf(random.nextLong()).getBytes()));
+                .forEach(value -> cardinality.offer(random.nextLong()));
         long estimate = cardinality.getCardinalitySync();
         double error = Math.abs(size - estimate)/Double.valueOf(size);
-        double expectedError = 1.04/Math.sqrt(1<<16);
-        assertTrue(error < expectedError);
+        assertTrue(error < 0.02, String.format("Error %f was not less than expected error %f", error, 0.02));
     }
 
     @Test
