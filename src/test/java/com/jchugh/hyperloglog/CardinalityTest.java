@@ -16,41 +16,41 @@ import static org.testng.Assert.*;
 public class CardinalityTest {
 
     @Test
-    public void testGetCardinality() throws Exception {
-        List<byte[]> input = new LinkedList<byte[]>();
-        input.add("a".getBytes());
-        input.add("a".getBytes());
-        input.add("a".getBytes());
-        input.add("b".getBytes());
-        input.add("c".getBytes());
-        input.add("d".getBytes());
-        input.add("b".getBytes());
-        input.add("c".getBytes());
-        input.add("d".getBytes());
-        input.add("c".getBytes());
-        input.add("b".getBytes());
-        input.add("b".getBytes());
-        input.add("b".getBytes());
-        input.add("d".getBytes());
-        input.add("d".getBytes());
-        input.add("e".getBytes());
-        input.add("f".getBytes());
-        input.add("g".getBytes());
-        input.add("h".getBytes());
-        assertEquals(Cardinality.getCardinality(input, 12), 8);
-    }
-
-    @Test
-    public void testGetCardinalityNumbers() throws Exception {
-        List<byte[]> input = new LinkedList<>();
+    public void testGetCardinalityNumbers_() throws Exception {
+        Cardinality cardinality = new Cardinality(16);
         int size = 100000;
         Random random = new Random();
         IntStream.range(0, size)
-                .forEach(value -> input.add(String.valueOf(random.nextLong()).getBytes()));
-        long estimate = Cardinality.getCardinality(input, 16);
+                .forEach(value -> cardinality.offer(String.valueOf(random.nextLong()).getBytes()));
+        long estimate = cardinality.getCardinalitySync();
         double error = Math.abs(size - estimate)/Double.valueOf(size);
         double expectedError = 1.04/Math.sqrt(1<<16);
         assertTrue(error < expectedError);
+    }
+
+    @Test
+    public void testGetCardinality_() throws Exception {
+        Cardinality cardinality = new Cardinality(12);
+        cardinality.offer("a".getBytes());
+        cardinality.offer("a".getBytes());
+        cardinality.offer("a".getBytes());
+        cardinality.offer("b".getBytes());
+        cardinality.offer("c".getBytes());
+        cardinality.offer("d".getBytes());
+        cardinality.offer("b".getBytes());
+        cardinality.offer("c".getBytes());
+        cardinality.offer("d".getBytes());
+        cardinality.offer("c".getBytes());
+        cardinality.offer("b".getBytes());
+        cardinality.offer("b".getBytes());
+        cardinality.offer("b".getBytes());
+        cardinality.offer("d".getBytes());
+        cardinality.offer("d".getBytes());
+        cardinality.offer("e".getBytes());
+        cardinality.offer("f".getBytes());
+        cardinality.offer("g".getBytes());
+        cardinality.offer("h".getBytes());
+        assertEquals(cardinality.getCardinalitySync(), 8);
     }
 
 }
