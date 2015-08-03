@@ -21,3 +21,7 @@ test_script:
 cache:
   - C:\maven\
   - C:\Users\appveyor\.m2
+
+artifacts:
+  - path: hyperloglog\target\hyperloglog-0.1.jar
+    name: hyperloglog-latest-jar
