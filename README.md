@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/joychugh/hyperloglog.svg?branch=master)](https://travis-ci.org/joychugh/hyperloglog)
 
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/github/joychugh/hyperloglog?branch=master&svg=true)](https://ci.appveyor.com/project/joychugh/hyperloglog)
+
 # hyperloglog
 hyperloglog implementation in Java 8
 
