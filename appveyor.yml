@@ -23,8 +23,8 @@ cache:
   - C:\Users\appveyor\.m2
 
 artifacts:
-  - path: hyperloglog\target\hyperloglog-0.1.jar
+  - path: target\hyperloglog-0.1.jar
     name: hyperloglog-latest-jar
 
 after_build:
-  - ps: Push-AppveyorArtifact hyperloglog\target\hyperloglog-0.1.jar
+  - ps: Push-AppveyorArtifact target\hyperloglog-0.1.jar
