@@ -25,3 +25,6 @@ cache:
 artifacts:
   - path: hyperloglog\target\hyperloglog-0.1.jar
     name: hyperloglog-latest-jar
+
+after_build:
+  - ps: Push-AppveyorArtifact hyperloglog\target\hyperloglog-0.1.jar
