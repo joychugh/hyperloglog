@@ -1,14 +1,17 @@
 package com.jchugh.hyperloglog;
 import com.google.common.hash.Hashing;
 import net.jcip.annotations.ThreadSafe;
+import net.jcip.annotations.NotThreadSafe;
 import java.nio.charset.Charset;
 
 /**
+ * Calculate cardinality based on the Hyperloglog algorithm. Computes cardinality with error less than 1.04/sqrt(2 ^ logRegisterCount)
+ * for cardinality approaching 10^9. At 10^9, the error percentage varies around 1-1.8%
+ * The register size is fixed at 8 bits for ease and simplicity of implementation.
+ * The hashing algorithm used is MurmurHash3 from <a href="https://github.com/google/guava">Guava library</a>
+ * The class is {@link ThreadSafe} <b>Except for the {@link #getCardinalityAsync()} </b>  method.
  * @author jchugh
- * Based on the HyperLogLog algorithm. Computes cardinality with error less than 1.04/sqrt(2 ^ logRegisterCount).
- * The register size is fixed at 8 bits for ease of implementation.
  */
-@ThreadSafe
 public class Cardinality {
     private final int SEED = 1;
     private final Object lock = new Object();
@@ -19,9 +22,11 @@ public class Cardinality {
     private final int shift;
 
     /**
-     * This class and all it's methods except {@link #getCardinalityAsync()} are {@link net.jcip.annotations.ThreadSafe}
+     * This class and all it's methods except {@link #getCardinalityAsync()} are {@link ThreadSafe}
      * @param logRegisterCount the log2 of Number of registers you wish to use, eg 16 registers = 4 logRegisterCount (log2(16) = 4).
      *                         This value has to be between 4 and 16 (min and max inclusive).
+     * @throws IllegalArgumentException if {@code logRegisterCount} is given a value outside of the specified range.
+     *
      */
     public Cardinality(int logRegisterCount) {
         if (!verifynumRegistersExponent(logRegisterCount)) {
@@ -86,7 +91,7 @@ public class Cardinality {
     }
 
     /**
-     * <B>Use With Caution</B> this method is {@link net.jcip.annotations.NotThreadSafe}
+     * <B>Use With Caution</B> this method is {@link NotThreadSafe}
      * Get the cardinality of the inputs received so far. Async.
      * While the cardinality is calculated, you can still add data to the registers, this may result in slightly skewed
      * cardinality for the instance it was called.

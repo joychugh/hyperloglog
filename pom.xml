@@ -6,7 +6,7 @@
 
     <groupId>com.jchugh</groupId>
     <artifactId>hyperloglog</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1</version>
 
     <properties>
         <guava.version>18.0</guava.version>
