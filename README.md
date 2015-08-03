@@ -3,6 +3,8 @@
 # hyperloglog
 hyperloglog implementation in Java 8
 
-This implementation uses standard 8 bit bytes for register size for simplicity of implementation. The error rate should not exceed 2% for cardinalities approaching 10^9
+This implementation uses standard `byte` for register size for simplicity of implementation. The error rate should not exceed 2% for cardinality approaching 10^9
 
-Original Paper: http://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf
+[Documentation](http://joychugh.github.io/hyperloglog/)
+
+[Original Paper](http://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf)
